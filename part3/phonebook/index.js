@@ -27,6 +27,9 @@ app.get('/api/persons/:id',(req,res)=>{
         res.status(404).end()
     }
 })
+app.get('/', (req, res) => {
+  res.send('Phonebook backend is running 🚀')
+})
 app.delete('/api/persons/:id',(req,res)=>{
     const id=req.params.id
     persons=persons.filter(p=>p.id!==id)
