@@ -52,12 +52,18 @@ const App = () => {
 
     const person = { name: newName, number: newNumber }
 
-    personService.create(person).then(res => {
-      setPersons(persons.concat(res.data))
-      showMessage(`Added ${newName}`)
-      setNewName('')
-      setNewNumber('')
-    })
+    personService
+      .create(person)
+      .then(res => {
+        setPersons(persons.concat(res.data))
+        showMessage(`Added ${newName}`)
+        setNewName('')
+        setNewNumber('')
+      })
+      .catch(error=>{
+        alert(error.response.data.error)
+      })
+
   }
 
   const deletePerson = (id, name) => {
