@@ -60,8 +60,8 @@ const App = () => {
         setNewName('')
         setNewNumber('')
       })
-      .catch(error=>{
-        alert(error.response.data.error)
+      .catch(error => {
+        showMessage(error.response.data.error, 'error')
       })
 
   }
