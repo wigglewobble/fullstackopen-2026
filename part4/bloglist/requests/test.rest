@@ -1,0 +1,7 @@
+### Get all blogs
+GET http://localhost:3003/api/blogs
+
+
+### Delete a blog
+DELETE http://localhost:3003/api/blogs/6a0a001081cd67a45a39d13a
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjZhMGI0MDczNGJiNzAzOWJiYzEyNjk1NiIsImlhdCI6MTc3OTEyMjQyNH0.ksekyAqEqqHlBO7eH1NpYZ43WFGPiAw5b-k98j8Vlbg
