@@ -1,0 +1,18 @@
+import Buttons from './components/Buttons'
+import Statistics from './components/Statistics'
+
+const App = () => {
+  return (
+    <div>
+      <h1>give feedback</h1>
+
+      <Buttons />
+
+      <h1>statistics</h1>
+
+      <Statistics />
+    </div>
+  )
+}
+
+export default App
