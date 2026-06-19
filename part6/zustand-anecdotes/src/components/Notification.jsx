@@ -1,23 +1,14 @@
-import useNotificationStore from '../notificationStore'
+import { useNotificationValue } from '../NotificationContext'
 
 const Notification = () => {
-  const notification = useNotificationStore(
-    (state) => state.notification
-  )
+  const notification = useNotificationValue()
 
   if (!notification) {
     return null
   }
 
-  const style = {
-    border: 'solid',
-    padding: 10,
-    borderWidth: 1,
-    marginBottom: 10
-  }
-
   return (
-    <div style={style}>
+    <div>
       {notification}
     </div>
   )

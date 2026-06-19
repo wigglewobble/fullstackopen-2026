@@ -1,32 +1,75 @@
-import { useEffect } from 'react'
-import AnecdoteList from './components/AnecdoteList'
-import AnecdoteForm from './components/AnecdoteForm'
-import Filter from './components/Filter'
+import { useAnecdotes } from './hooks/useAnecdotes'
 import Notification from './components/Notification'
-import useAnecdoteStore from './store'
+import { useNotify } from './NotificationContext'
 
 const App = () => {
-  const fetchAnecdotes = useAnecdoteStore(
-    (state) => state.fetchAnecdotes
-  )
+  const {
+    anecdotesQuery,
+    newAnecdoteMutation,
+    voteMutation
+  } = useAnecdotes()
 
-  useEffect(() => {
-    fetchAnecdotes()
-  }, [])
+  const notify = useNotify()
+
+  if (anecdotesQuery.isPending) {
+    return <div>loading data...</div>
+  }
+
+  if (anecdotesQuery.isError) {
+    return (
+      <div>
+        anecdote service not available due to problems in server
+      </div>
+    )
+  }
+
+  const anecdotes = anecdotesQuery.data
+
+  const onCreate = (event) => {
+    event.preventDefault()
+
+    const content = event.target.anecdote.value
+
+    newAnecdoteMutation.mutate(content)
+
+    notify(`you created '${content}'`)
+
+    event.target.anecdote.value = ''
+  }
 
   return (
     <div>
-      <h2>Anecdotes</h2>
-
       <Notification />
 
-      <Filter />
+      <h3>Create new</h3>
 
-      <AnecdoteList />
+      <form onSubmit={onCreate}>
+        <input name="anecdote" />
+        <button type="submit">create</button>
+      </form>
 
-      <h2>Create new</h2>
+      <h3>Anecdotes</h3>
 
-      <AnecdoteForm />
+      {anecdotes.map((anecdote) => (
+        <div key={anecdote.id}>
+          <div>{anecdote.content}</div>
+
+          <div>
+            has {anecdote.votes}
+
+            <button
+              onClick={() => {
+                voteMutation.mutate(anecdote)
+                notify(`you voted '${anecdote.content}'`)
+              }}
+            >
+              vote
+            </button>
+          </div>
+
+          <br />
+        </div>
+      ))}
     </div>
   )
 }
