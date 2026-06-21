@@ -83,7 +83,7 @@ const useAnecdoteStore = create((set, get) => ({
           a => a.id !== id
         )
     }))
-  }
+  } 
 
 }))
 
