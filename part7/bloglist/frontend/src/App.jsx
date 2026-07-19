@@ -12,6 +12,8 @@ import LoginForm from './components/LoginForm'
 import BlogList from './components/BlogList'
 import BlogView from './components/BlogView'
 
+import useNotificationStore from './stores/notificationStore'
+
 import { AppBar, Toolbar, Button } from '@mui/material'
 
 const App = () => {
@@ -19,9 +21,10 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const [message, setMessage] = useState(null)
 
   const navigate = useNavigate()
+
+  const setMessage = useNotificationStore((state) => state.setMessage)
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -40,7 +43,9 @@ const App = () => {
 
   const match = useMatch('/blogs/:id')
 
-  const blog = match ? blogs.find((b) => b.id === match.params.id) : null
+  const blog = match
+    ? blogs.find((b) => b.id === match.params.id)
+    : null
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -51,7 +56,10 @@ const App = () => {
         password,
       })
 
-      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
+      window.localStorage.setItem(
+        'loggedBlogappUser',
+        JSON.stringify(user)
+      )
 
       setUser(user)
       blogService.setToken(user.token)
@@ -62,17 +70,10 @@ const App = () => {
       navigate('/')
     } catch {
       setMessage('wrong username or password')
-
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000)
     }
   }
 
   const handleLike = async (blog) => {
-    console.log('BLOG RECEIVED:', blog)
-    console.log('BLOG USER:', blog.user)
-
     try {
       const updatedBlog = {
         title: blog.title,
@@ -82,10 +83,17 @@ const App = () => {
         user: blog.user.id || blog.user._id,
       }
 
-      const returnedBlog = await blogService.update(blog.id, updatedBlog)
+      const returnedBlog = await blogService.update(
+        blog.id,
+        updatedBlog
+      )
 
       setBlogs((prevBlogs) =>
-        prevBlogs.map((b) => (b.id !== returnedBlog.id ? b : returnedBlog)),
+        prevBlogs.map((b) =>
+          b.id !== returnedBlog.id
+            ? b
+            : returnedBlog
+        )
       )
     } catch (exception) {
       console.log('LIKE ERROR')
@@ -97,12 +105,17 @@ const App = () => {
     try {
       await blogService.remove(blog.id)
 
-      setBlogs((prevBlogs) => prevBlogs.filter((b) => b.id !== blog.id))
+      setBlogs((prevBlogs) =>
+        prevBlogs.filter((b) => b.id !== blog.id)
+      )
 
       navigate('/')
     } catch (exception) {
       console.log(exception)
-      alert(exception.response?.data?.error || 'failed to delete blog')
+      setMessage(
+        exception.response?.data?.error ||
+        'failed to delete blog'
+      )
     }
   }
 
@@ -115,7 +128,8 @@ const App = () => {
 
   const addBlog = async (blogObject) => {
     try {
-      const returnedBlog = await blogService.create(blogObject)
+      const returnedBlog =
+        await blogService.create(blogObject)
 
       setBlogs((prevBlogs) =>
         prevBlogs.concat({
@@ -125,12 +139,12 @@ const App = () => {
             username: user.username,
             name: user.name,
           },
-        }),
+        })
       )
 
       navigate('/')
     } catch {
-      alert('failed to create blog')
+      setMessage('failed to create blog')
     }
   }
 
@@ -138,34 +152,51 @@ const App = () => {
     <div>
       <AppBar position="static">
         <Toolbar>
-          <Button color="inherit" component={Link} to="/">
+          <Button
+            color="inherit"
+            component={Link}
+            to="/"
+          >
             blogs
           </Button>
 
           {user && (
-            <Button color="inherit" component={Link} to="/create">
+            <Button
+              color="inherit"
+              component={Link}
+              to="/create"
+            >
               create new
             </Button>
           )}
 
-          <Button color="inherit" component={Link} to="/login">
+          <Button
+            color="inherit"
+            component={Link}
+            to="/login"
+          >
             login
           </Button>
         </Toolbar>
       </AppBar>
 
-      <Notification message={message} />
+      <Notification />
 
       {user && (
         <p>
           {user.name} logged in
-          <button onClick={handleLogout}>logout</button>
+          <button onClick={handleLogout}>
+            logout
+          </button>
         </p>
       )}
 
       <ErrorBoundary>
         <Routes>
-          <Route path="/" element={<BlogList blogs={blogs} />} />
+          <Route
+            path="/"
+            element={<BlogList blogs={blogs} />}
+          />
 
           <Route
             path="/blogs/:id"
@@ -179,7 +210,12 @@ const App = () => {
             }
           />
 
-          <Route path="/create" element={<BlogForm createBlog={addBlog} />} />
+          <Route
+            path="/create"
+            element={
+              <BlogForm createBlog={addBlog} />
+            }
+          />
 
           <Route
             path="/login"
@@ -194,7 +230,10 @@ const App = () => {
             }
           />
 
-          <Route path="*" element={<NotFound />} />
+          <Route
+            path="*"
+            element={<NotFound />}
+          />
         </Routes>
       </ErrorBoundary>
     </div>

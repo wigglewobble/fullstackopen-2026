@@ -1,11 +1,15 @@
-import Alert from '@mui/material/Alert'
+import useNotificationStore from '../stores/notificationStore'
 
-const Notification = ({ message }) => {
-  if (!message) {
-    return null
-  }
+const Notification = () => {
+  const message = useNotificationStore(state => state.message)
 
-  return <Alert severity="info">{message}</Alert>
+  if (!message) return null
+
+  return (
+    <div className="notification">
+      {message}
+    </div>
+  )
 }
 
 export default Notification
