@@ -11,8 +11,8 @@ test('renders title and author but not url or likes by default', () => {
     likes: 10,
     user: {
       username: 'boss',
-      name: 'Boss'
-    }
+      name: 'Boss',
+    },
   }
 
   render(
@@ -21,22 +21,16 @@ test('renders title and author but not url or likes by default', () => {
       handleLike={() => {}}
       handleDelete={() => {}}
       user={blog.user}
-    />
+    />,
   )
 
-  const defaultView =
-    document.querySelector('.blogDefault')
+  const defaultView = document.querySelector('.blogDefault')
 
-  const detailsView =
-    document.querySelector('.blogDetails')
+  const detailsView = document.querySelector('.blogDetails')
 
-  expect(defaultView).toHaveTextContent(
-    'Component testing'
-  )
+  expect(defaultView).toHaveTextContent('Component testing')
 
-  expect(defaultView).toHaveTextContent(
-    'Boss'
-  )
+  expect(defaultView).toHaveTextContent('Boss')
 
   expect(detailsView).not.toBeVisible()
 })
@@ -49,8 +43,8 @@ test('shows url and likes when view button is clicked', async () => {
     likes: 10,
     user: {
       username: 'boss',
-      name: 'Boss'
-    }
+      name: 'Boss',
+    },
   }
 
   render(
@@ -59,7 +53,7 @@ test('shows url and likes when view button is clicked', async () => {
       handleLike={() => {}}
       handleDelete={() => {}}
       user={blog.user}
-    />
+    />,
   )
 
   const user = userEvent.setup()
@@ -67,13 +61,9 @@ test('shows url and likes when view button is clicked', async () => {
   const button = screen.getByText('view')
   await user.click(button)
 
-  expect(
-    screen.getByText('https://example.com')
-  ).toBeInTheDocument()
+  expect(screen.getByText('https://example.com')).toBeInTheDocument()
 
-  expect(
-    screen.getByText(/likes 10/i)
-  ).toBeInTheDocument()
+  expect(screen.getByText(/likes 10/i)).toBeInTheDocument()
 })
 
 test('if like button is clicked twice, event handler is called twice', async () => {
@@ -84,8 +74,8 @@ test('if like button is clicked twice, event handler is called twice', async () 
     likes: 10,
     user: {
       username: 'boss',
-      name: 'Boss'
-    }
+      name: 'Boss',
+    },
   }
 
   const mockHandler = vi.fn()
@@ -96,7 +86,7 @@ test('if like button is clicked twice, event handler is called twice', async () 
       handleLike={mockHandler}
       handleDelete={() => {}}
       user={blog.user}
-    />
+    />,
   )
 
   const user = userEvent.setup()

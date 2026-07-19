@@ -6,9 +6,7 @@ import BlogForm from './BlogForm'
 test('calls event handler with correct details when a new blog is created', async () => {
   const createBlog = vi.fn()
 
-  const { container } = render(
-    <BlogForm createBlog={createBlog} />
-  )
+  const { container } = render(<BlogForm createBlog={createBlog} />)
 
   const user = userEvent.setup()
 
@@ -26,6 +24,6 @@ test('calls event handler with correct details when a new blog is created', asyn
   expect(createBlog.mock.calls[0][0]).toEqual({
     title: 'Component testing',
     author: 'Boss',
-    url: 'https://example.com'
+    url: 'https://example.com',
   })
 })

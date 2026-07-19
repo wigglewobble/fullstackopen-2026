@@ -4,11 +4,11 @@ const Blog = ({ blog, handleLike, handleDelete, user }) => {
   const [visible, setVisible] = useState(false)
 
   const hideWhenVisible = {
-    display: visible ? 'none' : ''
+    display: visible ? 'none' : '',
   }
 
   const showWhenVisible = {
-    display: visible ? '' : 'none'
+    display: visible ? '' : 'none',
   }
 
   const blogStyle = {
@@ -16,23 +16,17 @@ const Blog = ({ blog, handleLike, handleDelete, user }) => {
     paddingLeft: 2,
     border: 'solid',
     borderWidth: 1,
-    marginBottom: 5
+    marginBottom: 5,
   }
 
   const showRemoveButton =
-    blog.user &&
-    user &&
-    blog.user.username === user.username
+    blog.user && user && blog.user.username === user.username
 
   return (
     <div className="blog" style={blogStyle}>
       <div className="blogDefault" style={hideWhenVisible}>
         {blog.title} {blog.author}
-
-        <button
-          type="button"
-          onClick={() => setVisible(true)}
-        >
+        <button type="button" onClick={() => setVisible(true)}>
           view
         </button>
       </div>
@@ -40,11 +34,7 @@ const Blog = ({ blog, handleLike, handleDelete, user }) => {
       <div className="blogDetails" style={showWhenVisible}>
         <div>
           {blog.title} {blog.author}
-
-          <button
-            type="button"
-            onClick={() => setVisible(false)}
-          >
+          <button type="button" onClick={() => setVisible(false)}>
             hide
           </button>
         </div>
@@ -53,11 +43,7 @@ const Blog = ({ blog, handleLike, handleDelete, user }) => {
 
         <div>
           likes {blog.likes}
-
-          <button
-            type="button"
-            onClick={() => handleLike(blog)}
-          >
+          <button type="button" onClick={() => handleLike(blog)}>
             like
           </button>
         </div>
@@ -65,10 +51,7 @@ const Blog = ({ blog, handleLike, handleDelete, user }) => {
         <div>{blog.user?.name}</div>
 
         {showRemoveButton && (
-          <button
-            type="button"
-            onClick={() => handleDelete(blog)}
-          >
+          <button type="button" onClick={() => handleDelete(blog)}>
             remove
           </button>
         )}

@@ -9,8 +9,8 @@ test('unlogged user sees info but no buttons', () => {
     likes: 3,
     user: {
       username: 'mluukkai',
-      name: 'Matti'
-    }
+      name: 'Matti',
+    },
   }
 
   render(<BlogView blog={blog} />)
@@ -27,12 +27,12 @@ test('non creator sees only like button', () => {
     likes: 3,
     user: {
       username: 'mluukkai',
-      name: 'Matti'
-    }
+      name: 'Matti',
+    },
   }
 
   const user = {
-    username: 'someone'
+    username: 'someone',
   }
 
   render(
@@ -41,7 +41,7 @@ test('non creator sees only like button', () => {
       user={user}
       handleLike={() => {}}
       handleDelete={() => {}}
-    />
+    />,
   )
 
   expect(screen.getByText('like')).toBeDefined()
@@ -55,12 +55,12 @@ test('creator sees remove button', () => {
     likes: 3,
     user: {
       username: 'mluukkai',
-      name: 'Matti'
-    }
+      name: 'Matti',
+    },
   }
 
   const user = {
-    username: 'mluukkai'
+    username: 'mluukkai',
   }
 
   render(
@@ -69,7 +69,7 @@ test('creator sees remove button', () => {
       user={user}
       handleLike={() => {}}
       handleDelete={() => {}}
-    />
+    />,
   )
 
   expect(screen.getByText('like')).toBeDefined()

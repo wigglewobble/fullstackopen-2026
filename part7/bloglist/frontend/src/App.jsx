@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
-import {
-  Routes,
-  Route,
-  Link,
-  useNavigate,
-  useMatch
-} from 'react-router-dom'
+import ErrorBoundary from './components/ErrorBoundary'
+import NotFound from './components/NotFound'
+import { Routes, Route, Link, useNavigate, useMatch } from 'react-router-dom'
 
 import blogService from './services/blogs'
 import loginService from './services/login'
@@ -28,12 +24,11 @@ const App = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    blogService.getAll().then(blogs => setBlogs(blogs))
+    blogService.getAll().then((blogs) => setBlogs(blogs))
   }, [])
 
   useEffect(() => {
-    const loggedUserJSON =
-      window.localStorage.getItem('loggedBlogappUser')
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
 
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
@@ -45,10 +40,7 @@ const App = () => {
 
   const match = useMatch('/blogs/:id')
 
-  const blog =
-    match
-      ? blogs.find(b => b.id === match.params.id)
-      : null
+  const blog = match ? blogs.find((b) => b.id === match.params.id) : null
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -56,13 +48,10 @@ const App = () => {
     try {
       const user = await loginService.login({
         username,
-        password
+        password,
       })
 
-      window.localStorage.setItem(
-        'loggedBlogappUser',
-        JSON.stringify(user)
-      )
+      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
 
       setUser(user)
       blogService.setToken(user.token)
@@ -90,20 +79,13 @@ const App = () => {
         author: blog.author,
         url: blog.url,
         likes: blog.likes + 1,
-        user: blog.user.id || blog.user._id
+        user: blog.user.id || blog.user._id,
       }
 
-      const returnedBlog = await blogService.update(
-        blog.id,
-        updatedBlog
-      )
+      const returnedBlog = await blogService.update(blog.id, updatedBlog)
 
-      setBlogs(prevBlogs =>
-        prevBlogs.map(b =>
-          b.id !== returnedBlog.id
-            ? b
-            : returnedBlog
-        )
+      setBlogs((prevBlogs) =>
+        prevBlogs.map((b) => (b.id !== returnedBlog.id ? b : returnedBlog)),
       )
     } catch (exception) {
       console.log('LIKE ERROR')
@@ -115,19 +97,12 @@ const App = () => {
     try {
       await blogService.remove(blog.id)
 
-      setBlogs(prevBlogs =>
-        prevBlogs.filter(
-          b => b.id !== blog.id
-        )
-      )
+      setBlogs((prevBlogs) => prevBlogs.filter((b) => b.id !== blog.id))
 
       navigate('/')
     } catch (exception) {
       console.log(exception)
-      alert(
-        exception.response?.data?.error ||
-        'failed to delete blog'
-      )
+      alert(exception.response?.data?.error || 'failed to delete blog')
     }
   }
 
@@ -140,18 +115,17 @@ const App = () => {
 
   const addBlog = async (blogObject) => {
     try {
-      const returnedBlog =
-        await blogService.create(blogObject)
+      const returnedBlog = await blogService.create(blogObject)
 
-      setBlogs(prevBlogs =>
+      setBlogs((prevBlogs) =>
         prevBlogs.concat({
           ...returnedBlog,
           user: {
             id: user.id,
             username: user.username,
-            name: user.name
-          }
-        })
+            name: user.name,
+          },
+        }),
       )
 
       navigate('/')
@@ -164,29 +138,17 @@ const App = () => {
     <div>
       <AppBar position="static">
         <Toolbar>
-          <Button
-            color="inherit"
-            component={Link}
-            to="/"
-          >
+          <Button color="inherit" component={Link} to="/">
             blogs
           </Button>
 
-          {user &&
-            <Button
-              color="inherit"
-              component={Link}
-              to="/create"
-            >
+          {user && (
+            <Button color="inherit" component={Link} to="/create">
               create new
             </Button>
-          }
+          )}
 
-          <Button
-            color="inherit"
-            component={Link}
-            to="/login"
-          >
+          <Button color="inherit" component={Link} to="/login">
             login
           </Button>
         </Toolbar>
@@ -194,52 +156,47 @@ const App = () => {
 
       <Notification message={message} />
 
-      {user &&
+      {user && (
         <p>
           {user.name} logged in
-
-          <button onClick={handleLogout}>
-            logout
-          </button>
+          <button onClick={handleLogout}>logout</button>
         </p>
-      }
+      )}
 
-      <Routes>
-        <Route
-          path="/"
-          element={<BlogList blogs={blogs} />}
-        />
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<BlogList blogs={blogs} />} />
 
-        <Route
-          path="/blogs/:id"
-          element={
-            <BlogView
-              blog={blog}
-              user={user}
-              handleLike={handleLike}
-              handleDelete={handleDelete}
-            />
-          }
-        />
+          <Route
+            path="/blogs/:id"
+            element={
+              <BlogView
+                blog={blog}
+                user={user}
+                handleLike={handleLike}
+                handleDelete={handleDelete}
+              />
+            }
+          />
 
-        <Route
-          path="/create"
-          element={<BlogForm createBlog={addBlog} />}
-        />
+          <Route path="/create" element={<BlogForm createBlog={addBlog} />} />
 
-        <Route
-          path="/login"
-          element={
-            <LoginForm
-              username={username}
-              password={password}
-              setUsername={setUsername}
-              setPassword={setPassword}
-              handleLogin={handleLogin}
-            />
-          }
-        />
-      </Routes>
+          <Route
+            path="/login"
+            element={
+              <LoginForm
+                username={username}
+                password={password}
+                setUsername={setUsername}
+                setPassword={setPassword}
+                handleLogin={handleLogin}
+              />
+            }
+          />
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ErrorBoundary>
     </div>
   )
 }
