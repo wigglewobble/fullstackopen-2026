@@ -1,9 +1,8 @@
 import { TextField, Button } from '@mui/material'
+
 const LoginForm = ({
   username,
   password,
-  setUsername,
-  setPassword,
   handleLogin,
 }) => {
   return (
@@ -14,17 +13,14 @@ const LoginForm = ({
         <div>
           <TextField
             label="Username"
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
+            {...username.input}
           />
         </div>
 
         <div>
           <TextField
             label="Password"
-            type="password"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
+            {...password.input}
           />
         </div>
 

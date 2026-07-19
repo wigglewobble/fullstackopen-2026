@@ -1,71 +1,92 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import ErrorBoundary from './components/ErrorBoundary'
 import NotFound from './components/NotFound'
 import { Routes, Route, Link, useNavigate, useMatch } from 'react-router-dom'
 
-import blogService from './services/blogs'
-import loginService from './services/login'
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Container,
+  Box,
+  Typography,
+} from '@mui/material'
 
+import Users from './components/Users'
+import User from './components/User'
 import Notification from './components/Notification'
 import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
 import BlogList from './components/BlogList'
 import BlogView from './components/BlogView'
 
+import loginService from './services/login'
+
+import useBlogStore from './stores/blogStore'
+import useUserStore from './stores/userStore'
+import useUserListStore from './stores/userListStore'
 import useNotificationStore from './stores/notificationStore'
 
-import { AppBar, Toolbar, Button } from '@mui/material'
+import useField from './hooks/useField'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
+  const username = useField('text')
+  const password = useField('password')
 
-  const navigate = useNavigate()
+  const blogs = useBlogStore((state) => state.blogs)
+  const initializeBlogs = useBlogStore((state) => state.initializeBlogs)
+  const createBlog = useBlogStore((state) => state.createBlog)
+  const likeBlog = useBlogStore((state) => state.likeBlog)
+  const deleteBlog = useBlogStore((state) => state.deleteBlog)
+
+  const user = useUserStore((state) => state.user)
+  const setUser = useUserStore((state) => state.setUser)
+  const initializeUser = useUserStore((state) => state.initializeUser)
+  const logout = useUserStore((state) => state.logout)
+
+  const users = useUserListStore((state) => state.users)
+  const initializeUsers = useUserListStore((state) => state.initializeUsers)
 
   const setMessage = useNotificationStore((state) => state.setMessage)
 
-  useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs))
-  }, [])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
+    initializeBlogs()
+  }, [initializeBlogs])
 
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
+  useEffect(() => {
+    initializeUser()
+  }, [initializeUser])
 
-      setUser(user)
-      blogService.setToken(user.token)
-    }
-  }, [])
+  useEffect(() => {
+    initializeUsers()
+  }, [initializeUsers])
 
   const match = useMatch('/blogs/:id')
+  const userMatch = useMatch('/users/:id')
 
   const blog = match
     ? blogs.find((b) => b.id === match.params.id)
+    : null
+
+  const selectedUser = userMatch
+    ? users.find((u) => u.id === userMatch.params.id)
     : null
 
   const handleLogin = async (event) => {
     event.preventDefault()
 
     try {
-      const user = await loginService.login({
-        username,
-        password,
+      const loggedUser = await loginService.login({
+        username: username.input.value,
+        password: password.input.value,
       })
 
-      window.localStorage.setItem(
-        'loggedBlogappUser',
-        JSON.stringify(user)
-      )
+      setUser(loggedUser)
 
-      setUser(user)
-      blogService.setToken(user.token)
-
-      setUsername('')
-      setPassword('')
+      username.reset()
+      password.reset()
 
       navigate('/')
     } catch {
@@ -75,73 +96,29 @@ const App = () => {
 
   const handleLike = async (blog) => {
     try {
-      const updatedBlog = {
-        title: blog.title,
-        author: blog.author,
-        url: blog.url,
-        likes: blog.likes + 1,
-        user: blog.user.id || blog.user._id,
-      }
-
-      const returnedBlog = await blogService.update(
-        blog.id,
-        updatedBlog
-      )
-
-      setBlogs((prevBlogs) =>
-        prevBlogs.map((b) =>
-          b.id !== returnedBlog.id
-            ? b
-            : returnedBlog
-        )
-      )
+      await likeBlog(blog)
     } catch (exception) {
-      console.log('LIKE ERROR')
       console.log(exception)
     }
   }
 
   const handleDelete = async (blog) => {
     try {
-      await blogService.remove(blog.id)
-
-      setBlogs((prevBlogs) =>
-        prevBlogs.filter((b) => b.id !== blog.id)
-      )
-
+      await deleteBlog(blog)
       navigate('/')
     } catch (exception) {
-      console.log(exception)
-      setMessage(
-        exception.response?.data?.error ||
-        'failed to delete blog'
-      )
+      setMessage(exception.response?.data?.error || 'failed to delete blog')
     }
   }
 
   const handleLogout = () => {
-    window.localStorage.removeItem('loggedBlogappUser')
-    setUser(null)
-
+    logout()
     navigate('/')
   }
 
   const addBlog = async (blogObject) => {
     try {
-      const returnedBlog =
-        await blogService.create(blogObject)
-
-      setBlogs((prevBlogs) =>
-        prevBlogs.concat({
-          ...returnedBlog,
-          user: {
-            id: user.id,
-            username: user.username,
-            name: user.name,
-          },
-        })
-      )
-
+      await createBlog(blogObject)
       navigate('/')
     } catch {
       setMessage('failed to create blog')
@@ -149,94 +126,112 @@ const App = () => {
   }
 
   return (
-    <div>
+    <>
       <AppBar position="static">
         <Toolbar>
-          <Button
-            color="inherit"
-            component={Link}
-            to="/"
-          >
-            blogs
+          <Button color="inherit" component={Link} to="/">
+            Blogs
+          </Button>
+
+          <Button color="inherit" component={Link} to="/users">
+            Users
           </Button>
 
           {user && (
-            <Button
-              color="inherit"
-              component={Link}
-              to="/create"
-            >
-              create new
+            <Button color="inherit" component={Link} to="/create">
+              Create New
             </Button>
           )}
 
-          <Button
-            color="inherit"
-            component={Link}
-            to="/login"
-          >
-            login
-          </Button>
+          {!user && (
+            <Button color="inherit" component={Link} to="/login">
+              Login
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
-      <Notification />
+      <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
+        <Notification />
 
-      {user && (
-        <p>
-          {user.name} logged in
-          <button onClick={handleLogout}>
-            logout
-          </button>
-        </p>
-      )}
+        {user && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              my: 2,
+            }}
+          >
+            <Typography>
+              Logged in as <strong>{user.name}</strong>
+            </Typography>
 
-      <ErrorBoundary>
-        <Routes>
-          <Route
-            path="/"
-            element={<BlogList blogs={blogs} />}
-          />
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Box>
+        )}
 
-          <Route
-            path="/blogs/:id"
-            element={
-              <BlogView
-                blog={blog}
-                user={user}
-                handleLike={handleLike}
-                handleDelete={handleDelete}
-              />
-            }
-          />
+        <ErrorBoundary>
+          <Routes>
+            <Route
+              path="/"
+              element={<BlogList blogs={blogs} />}
+            />
 
-          <Route
-            path="/create"
-            element={
-              <BlogForm createBlog={addBlog} />
-            }
-          />
+            <Route
+              path="/users"
+              element={<Users users={users} />}
+            />
 
-          <Route
-            path="/login"
-            element={
-              <LoginForm
-                username={username}
-                password={password}
-                setUsername={setUsername}
-                setPassword={setPassword}
-                handleLogin={handleLogin}
-              />
-            }
-          />
+            <Route
+              path="/users/:id"
+              element={<User user={selectedUser} />}
+            />
 
-          <Route
-            path="*"
-            element={<NotFound />}
-          />
-        </Routes>
-      </ErrorBoundary>
-    </div>
+            <Route
+              path="/blogs/:id"
+              element={
+                <BlogView
+                  blog={blog}
+                  user={user}
+                  handleLike={handleLike}
+                  handleDelete={handleDelete}
+                />
+              }
+            />
+
+            <Route
+              path="/create"
+              element={
+                <BlogForm createBlog={addBlog} />
+              }
+            />
+
+            <Route
+              path="/login"
+              element={
+                <LoginForm
+                  username={username}
+                  password={password}
+                  handleLogin={handleLogin}
+                />
+              }
+            />
+
+            <Route
+              path="*"
+              element={<NotFound />}
+            />
+          </Routes>
+        </ErrorBoundary>
+      </Container>
+    </>
   )
 }
 

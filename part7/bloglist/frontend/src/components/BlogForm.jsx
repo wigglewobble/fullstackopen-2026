@@ -1,45 +1,48 @@
-import { useState } from 'react'
 import { TextField, Button } from '@mui/material'
+import useField from '../hooks/useField'
+
 const BlogForm = ({ createBlog }) => {
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+  const title = useField('text')
+  const author = useField('text')
+  const url = useField('text')
+
   const addBlog = (event) => {
     event.preventDefault()
+
     createBlog({
-      title,
-      author,
-      url,
+      title: title.input.value,
+      author: author.input.value,
+      url: url.input.value,
     })
-    setTitle('')
-    setAuthor('')
-    setUrl('')
+
+    title.reset()
+    author.reset()
+    url.reset()
   }
+
   return (
     <div>
       <h2>create new</h2>
+
       <form onSubmit={addBlog}>
         <div>
           <TextField
             label="Title"
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
+            {...title.input}
           />
         </div>
 
         <div>
           <TextField
             label="Author"
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
+            {...author.input}
           />
         </div>
 
         <div>
           <TextField
             label="URL"
-            value={url}
-            onChange={({ target }) => setUrl(target.value)}
+            {...url.input}
           />
         </div>
 
@@ -50,4 +53,5 @@ const BlogForm = ({ createBlog }) => {
     </div>
   )
 }
+
 export default BlogForm
