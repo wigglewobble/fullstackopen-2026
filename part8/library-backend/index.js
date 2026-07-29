@@ -1,6 +1,7 @@
 const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
 const { randomUUID } = require("crypto");
+
 let authors = [
   {
     name: "Robert Martin",
@@ -99,20 +100,20 @@ const typeDefs = `#graphql
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
   }
-  
-  type Mutation {
-  addBook(
-    title: String!
-    author: String!
-    published: Int!
-    genres: [String!]!
-  ): Book!
 
-  editAuthor(
-    name: String!
-    setBornTo: Int!
-  ): Author
-}
+  type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String!]!
+    ): Book!
+
+    editAuthor(
+      name: String!
+      setBornTo: Int!
+    ): Author
+  }
 `;
 
 const resolvers = {
@@ -126,25 +127,22 @@ const resolvers = {
 
       if (args.author) {
         filteredBooks = filteredBooks.filter(
-          (book) => book.author === args.author,
+          (book) => book.author === args.author
         );
       }
 
       if (args.genre) {
         filteredBooks = filteredBooks.filter((book) =>
-          book.genres.includes(args.genre),
+          book.genres.includes(args.genre)
         );
       }
 
       return filteredBooks;
     },
 
-    allAuthors: () =>
-      authors.map((author) => ({
-        ...author,
-        bookCount: books.filter((book) => book.author === author.name).length,
-      })),
+    allAuthors: () => authors,
   },
+
   Mutation: {
     addBook: (root, args) => {
       let author = authors.find((a) => a.name === args.author);
@@ -167,6 +165,7 @@ const resolvers = {
 
       return book;
     },
+
     editAuthor: (root, args) => {
       const author = authors.find((a) => a.name === args.name);
 
@@ -177,6 +176,12 @@ const resolvers = {
       author.born = args.setBornTo;
 
       return author;
+    },
+  },
+
+  Author: {
+    bookCount: (root) => {
+      return books.filter((book) => book.author === root.name).length;
     },
   },
 };
