@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { ALL_AUTHORS, EDIT_AUTHOR } from "../queries";
 
-const Authors = ({ show }) => {
+const Authors = ({ show, authenticated }) => {
   const result = useQuery(ALL_AUTHORS);
 
   const [name, setName] = useState("");
@@ -12,28 +12,18 @@ const Authors = ({ show }) => {
     refetchQueries: [{ query: ALL_AUTHORS }],
   });
 
-  if (!show) {
-    return null;
-  }
-
-  if (result.loading) {
-    return <div>loading...</div>;
-  }
+  if (!show) return null;
+  if (result.loading) return <div>loading...</div>;
 
   const authors = result.data.allAuthors;
-
-  useEffect(() => {
-    if (authors.length > 0 && name === "") {
-      setName(authors[0].name);
-    }
-  }, [authors, name]);
+  const selectedName = name || authors[0]?.name || "";
 
   const submit = async (event) => {
     event.preventDefault();
 
     await editAuthor({
       variables: {
-        name,
+        name: selectedName,
         setBornTo: Number(born),
       },
     });
@@ -63,13 +53,14 @@ const Authors = ({ show }) => {
         </tbody>
       </table>
 
-      <h3>Set birthyear</h3>
+      {authenticated && <h3>Set birthyear</h3>}
 
-      <form onSubmit={submit}>
+      {authenticated && <form onSubmit={submit}>
         <div>
           name
           <select
-            value={name}
+            name="name"
+            value={selectedName}
             onChange={({ target }) => setName(target.value)}
           >
             {authors.map((author) => (
@@ -81,8 +72,9 @@ const Authors = ({ show }) => {
         </div>
 
         <div>
-          born
+          <label htmlFor="born">born</label>
           <input
+            id="born"
             type="number"
             value={born}
             onChange={({ target }) => setBorn(target.value)}
@@ -90,7 +82,7 @@ const Authors = ({ show }) => {
         </div>
 
         <button type="submit">update author</button>
-      </form>
+      </form>}
     </div>
   );
 };
