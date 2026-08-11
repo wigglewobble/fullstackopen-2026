@@ -1,10 +1,14 @@
 const { GraphQLError } = require("graphql");
+const { PubSub } = require("graphql-subscriptions");
 const jwt = require("jsonwebtoken");
 
 const Author = require("./models/author");
 const Book = require("./models/book");
 const User = require("./models/user");
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const pubsub = new PubSub();
+const BOOK_ADDED = "BOOK_ADDED";
+
 const resolvers = {
   Query: {
     bookCount: async () => await Book.collection.countDocuments(),
@@ -31,7 +35,26 @@ const resolvers = {
       return await Book.find(filter).populate("author");
     },
 
-    allAuthors: async () => await Author.find({}),
+    allAuthors: async () => {
+      const authors = await Author.find({});
+      const bookCounts = await Book.aggregate([
+        {
+          $group: {
+            _id: "$author",
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+      const countByAuthor = new Map(
+        bookCounts.map((item) => [item._id.toString(), item.count])
+      );
+
+      return authors.map((author) => ({
+        ...author.toObject(),
+        id: author.id,
+        bookCount: countByAuthor.get(author._id.toString()) || 0,
+      }));
+    },
 
     me: (root, args, context) => {
       return context.currentUser;
@@ -72,7 +95,10 @@ const resolvers = {
 
         await book.save();
 
-        return await book.populate("author");
+        const addedBook = await book.populate("author");
+        pubsub.publish(BOOK_ADDED, { bookAdded: addedBook });
+
+        return addedBook;
       } catch (error) {
         throw new GraphQLError(error.message, {
           extensions: {
@@ -170,9 +196,19 @@ const resolvers = {
 
   Author: {
     bookCount: async (root) => {
+      if (root.bookCount !== undefined) {
+        return root.bookCount;
+      }
+
       return await Book.countDocuments({
         author: root._id,
       });
+    },
+  },
+
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterableIterator([BOOK_ADDED]),
     },
   },
 };
